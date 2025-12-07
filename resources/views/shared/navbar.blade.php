@@ -5,7 +5,7 @@
             {{-- LOGO --}}
             <a href="{{ route('shop.home') }}" class="flex items-center z-50">
                 <div class="relative h-10 w-32 sm:h-12 sm:w-36 lg:h-16 lg:w-48">
-                    <img src="/logoreal1.png" alt="Logo" class="h-full w-full object-contain">
+                    <img src="/logo.png" alt="Logo" class="h-full w-full object-contain">
                 </div>
             </a>
 

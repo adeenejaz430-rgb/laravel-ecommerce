@@ -15,7 +15,7 @@ class Product extends Model
         'description',
         'price',
         'images',
-        'category',
+        'category',       // 👈 slug string
         'featured',
         'quantity',
         'average_rating',
@@ -23,16 +23,20 @@ class Product extends Model
 
     protected $casts = [
         'featured' => 'boolean',
-        'images'   => 'array',   // JSON array of strings (image URLs)
+        'images'   => 'array',
     ];
 
-    // Ratings embedded array in Mongo -> hasMany relation
+    // 👇 RENAME THIS to avoid conflict with the 'category' column
+    public function categoryRelation()
+    {
+        return $this->belongsTo(Category::class, 'category', 'slug');
+    }
+
     public function ratings()
     {
         return $this->hasMany(ProductRating::class);
     }
 
-    // Match previous User model relations
     public function wishlistedByUsers()
     {
         return $this->belongsToMany(User::class, 'wishlists')

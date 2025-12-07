@@ -18,7 +18,8 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::query()->with('category');
+        // ✅ Use 'categoryRelation' since that's what you named it in the Product model
+        $query = Product::query()->with('categoryRelation');
 
         // --- read filters from request ---
         $search       = $request->input('search');
@@ -35,12 +36,10 @@ class ProductController extends Controller
             });
         }
 
-        // --- filter by category (slug or id) ---
+        // --- filter by category slug ---
         if (!empty($categorySlug)) {
-            $query->whereHas('category', function ($q) use ($categorySlug) {
-                $q->where('slug', $categorySlug)
-                  ->orWhere('id', $categorySlug);
-            });
+            // ✅ Filter by the 'category' column which stores slug
+            $query->where('category', $categorySlug);
         }
 
         // --- price range ---
@@ -98,8 +97,12 @@ class ProductController extends Controller
         // Optional: increment views for "popular products"
         $product->increment('views');
 
-        // Related products from same category
-        $relatedProducts = Product::where('category_id', $product->category_id)
+        // ✅ Load the category relationship
+        $product->load('categoryRelation');
+
+        // ✅ Related products from same category using slug
+        $relatedProducts = Product::with('categoryRelation')
+            ->where('category', $product->category) // Using slug from 'category' column
             ->where('id', '!=', $product->id)
             ->latest()
             ->take(8)
@@ -125,7 +128,9 @@ class ProductController extends Controller
         $search = $request->input('search');
         $sort   = $request->input('sort', 'newest');
 
-        $query = Product::where('category_id', $category->id);
+        // ✅ Filter by slug stored in 'category' column
+        $query = Product::with('categoryRelation')
+            ->where('category', $category->slug);
 
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {

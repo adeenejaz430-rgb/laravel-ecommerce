@@ -84,18 +84,33 @@
                             Categories
                         </h3>
                         <div class="space-y-2">
+                            {{-- All Products Button --}}
+                            <button
+                                type="submit"
+                                name="category"
+                                value=""
+                                class="w-full text-left px-5 py-3.5 rounded-2xl transition-all font-semibold text-sm
+                                    {{ empty($categorySlug)
+                                        ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/30 scale-105'
+                                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                                    }}"
+                            >
+                                All Products
+                            </button>
+
+                            {{-- ✅ Loop through categories properly --}}
                             @foreach($categories as $cat)
                                 <button
                                     type="submit"
                                     name="category"
-                                    value="{{ $cat }}"
+                                    value="{{ $cat->slug }}"
                                     class="w-full text-left px-5 py-3.5 rounded-2xl transition-all font-semibold text-sm
-                                        {{ ($selectedCategory ?? 'All') === $cat
+                                        {{ $categorySlug === $cat->slug
                                             ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/30 scale-105'
                                             : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                                         }}"
                                 >
-                                    {{ $cat }}
+                                    {{ $cat->name }}
                                 </button>
                             @endforeach
                         </div>
@@ -109,23 +124,23 @@
                         </h3>
                         <div class="space-y-4">
                             <div class="flex justify-between items-center bg-gradient-to-r from-green-50 to-emerald-50 px-4 py-3 rounded-xl">
-                                <span class="text-sm font-bold text-gray-700">${{ $priceMin ?? 0 }}</span>
+                                <span class="text-sm font-bold text-gray-700">${{ $minPrice ?? 0 }}</span>
                                 <div class="w-px h-6 bg-green-300"></div>
-                                <span class="text-sm font-bold text-gray-700">${{ $priceMax ?? 1000 }}</span>
+                                <span class="text-sm font-bold text-gray-700">${{ $maxPrice ?? 1000 }}</span>
                             </div>
                             <div class="flex gap-2">
                                 <input
                                     type="number"
-                                    name="min"
+                                    name="min_price"
                                     class="w-1/2 px-3 py-2 border rounded-lg text-sm"
-                                    value="{{ $priceMin ?? 0 }}"
+                                    value="{{ $minPrice ?? '' }}"
                                     placeholder="Min"
                                 />
                                 <input
                                     type="number"
-                                    name="max"
+                                    name="max_price"
                                     class="w-1/2 px-3 py-2 border rounded-lg text-sm"
-                                    value="{{ $priceMax ?? 1000 }}"
+                                    value="{{ $maxPrice ?? '' }}"
                                     placeholder="Max"
                                 />
                             </div>
@@ -142,16 +157,15 @@
                             name="sort"
                             class="w-full px-5 py-3.5 border-2 border-gray-200 rounded-2xl bg-gray-50 font-semibold text-sm text-gray-700"
                         >
-                            <option value="featured" {{ ($sortBy ?? 'featured') === 'featured' ? 'selected' : '' }}>✨ Featured</option>
-                            <option value="price-low-high" {{ ($sortBy ?? '') === 'price-low-high' ? 'selected' : '' }}>💰 Price: Low to High</option>
-                            <option value="price-high-low" {{ ($sortBy ?? '') === 'price-high-low' ? 'selected' : '' }}>💎 Price: High to Low</option>
-                            <option value="rating" {{ ($sortBy ?? '') === 'rating' ? 'selected' : '' }}>⭐ Highest Rated</option>
+                            <option value="newest" {{ ($sort ?? 'newest') === 'newest' ? 'selected' : '' }}>✨ Newest First</option>
+                            <option value="price_asc" {{ ($sort ?? '') === 'price_asc' ? 'selected' : '' }}>💰 Price: Low to High</option>
+                            <option value="price_desc" {{ ($sort ?? '') === 'price_desc' ? 'selected' : '' }}>💎 Price: High to Low</option>
                         </select>
                     </div>
 
                     <button
                         type="submit"
-                        class="w-full mt-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold py-3 rounded-2xl"
+                        class="w-full mt-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold py-3 rounded-2xl hover:shadow-lg transition-all"
                     >
                         Apply Filters
                     </button>
@@ -184,7 +198,7 @@
                         </p>
                         <a
                             href="{{ route('products.index') }}"
-                            class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-10 py-4 rounded-full font-bold"
+                            class="inline-block bg-gradient-to-r from-green-500 to-emerald-600 text-white px-10 py-4 rounded-full font-bold hover:shadow-lg transition-all"
                         >
                             Reset Filters
                         </a>
@@ -194,15 +208,19 @@
                         @foreach($filteredProducts as $product)
                             @php
                                 $stockQty = (int)($product->quantity ?? 0);
-                                $rating = (int)($product->rating ?? 0);
+                                $rating = (int)($product->average_rating ?? 0);
+                                // ✅ Get images array properly
+                                $images = is_array($product->images) ? $product->images : [];
+                                $firstImage = $images[0] ?? '/images/placeholder.jpg';
                             @endphp
                             <div class="bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-gray-100 hover:border-green-400 group">
                                 <div class="relative h-72 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
                                     <a href="{{ route('products.show', $product->slug) }}">
                                         <img
-                                            src="{{ $product->images[0] ?? '/images/placeholder.jpg' }}"
+                                            src="{{ $firstImage }}"
                                             alt="{{ $product->name }}"
                                             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                            onerror="this.onerror=null;this.src='/images/placeholder.jpg';"
                                         />
                                     </a>
 
@@ -225,8 +243,9 @@
 
                                 <div class="p-6">
                                     <div class="mb-3">
+                                        {{-- ✅ Use categoryRelation instead of category --}}
                                         <span class="text-xs text-green-600 font-bold uppercase tracking-wider bg-green-50 px-3 py-1 rounded-full">
-                                            {{ $product->category }}
+                                            {{ $product->categoryRelation->name ?? 'Uncategorized' }}
                                         </span>
                                     </div>
 
@@ -241,7 +260,7 @@
                                         @for($i=0; $i<5; $i++)
                                             <span class="text-sm {{ $i < $rating ? 'text-yellow-400' : 'text-gray-300' }}">★</span>
                                         @endfor
-                                        <span class="text-sm text-gray-500 ml-2 font-semibold">({{ $product->rating ?? 0 }})</span>
+                                        <span class="text-sm text-gray-500 ml-2 font-semibold">({{ $product->average_rating ?? 0 }})</span>
                                     </div>
 
                                     <div class="flex items-center justify-between pt-5 border-t-2 border-gray-100">
@@ -253,12 +272,12 @@
                                         </div>
 
                                         {{-- "Add to cart" can submit a form to a cart route --}}
-                                        <form method="POST" action="{{ route('cart.add', $product->id ?? $product->_id) }}">
+                                        <form method="POST" action="{{ route('cart.add', $product->id) }}">
                                             @csrf
                                             <button
                                                 type="submit"
                                                 @if($stockQty === 0) disabled @endif
-                                                class="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-3.5 rounded-2xl
+                                                class="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-3.5 rounded-2xl hover:shadow-lg transition-all
                                                     disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed"
                                             >
                                                 🛒
@@ -270,7 +289,8 @@
                         @endforeach
                     </div>
 
-                    <div class="mt-8">
+                    {{-- Pagination --}}
+                    <div class="mt-12">
                         {{ $filteredProducts->links() }}
                     </div>
                 @endif
